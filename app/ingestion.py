@@ -47,12 +47,17 @@ class Ingestion():
         
         chunks = splitter.split_documents(documents)
         
+        print("NUMBER OF DOCUMENTS:", len(documents))
+        print("NUMBER OF CHUNKS:", len(chunks))
+        
         texts = [
             chunk.page_content
             for chunk in chunks
         ]
         
         embeddings = self.embed(texts)
+        
+        print("NUMBER OF EMBEDDINGS:", len(embeddings))
         
         return embeddings, texts
         
