@@ -9,6 +9,7 @@ dependencies = [
     "fastapi[standard]>=0.141.1",
     "google-genai>=2.19.0",
     "langchain-text-splitters>=1.1.2",
+    "pwdlib[argon2]>=0.3.1",
     "pyjwt>=2.13.0",
     "pymupdf>=1.28.2",
     "qdrant-client>=1.19.0",
