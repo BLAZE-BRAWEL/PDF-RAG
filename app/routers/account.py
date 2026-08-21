@@ -33,7 +33,9 @@ async def log_in(details: Account_Details_In, db: AsyncSession= Depends(get_db))
             detail="Email or Password invalid"
         )
     
-    correct_password = verify_password(details.password, user.password)
+    password = details.password.get_secret_value()
+    
+    correct_password = verify_password(password, user.password)
     
     if not correct_password:
         raise HTTPException(
@@ -41,7 +43,7 @@ async def log_in(details: Account_Details_In, db: AsyncSession= Depends(get_db))
             detail="Email or Password invalid"
         )
     
-    token = create_access_token(user.uuid)
+    token = create_access_token(user.id)
     
     return {
         "access_token" : token,

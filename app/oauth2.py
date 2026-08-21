@@ -6,27 +6,22 @@ from fastapi.security import OAuth2PasswordBearer
 from .import  models
 from .database import get_db
 from datetime import datetime, timezone, timedelta
-from dotenv import load_dotenv
-from pathlib import Path
 from .config import settings
 from .global_variables import ALGORITHM
+from uuid import UUID
 
 oauth2schema = OAuth2PasswordBearer(tokenUrl="login")
 
-dotenv_path = Path(__file__).resolve().parent.parent/ '.env'
-load_dotenv(dotenv_path=dotenv_path)
-
 SECRET_KEY = settings.secret_key
-ALGORITHM = ALGORITHM
 
-def create_access_token(user_id: str):
+def create_access_token(user_id: UUID):
     payload = {
         'sub' : str(user_id),
         'iat' : datetime.now(timezone.utc),
         'exp' : datetime.now(timezone.utc) + timedelta(minutes=30)
     }
     
-    token = jwt.encode(payload, SECRET_KEY, ALGORITHM)
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     
     return token
 
@@ -34,7 +29,7 @@ def verify_access_token(token: str, credentials_exception):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         
-        user_id = payload['user_id']
+        user_id = payload['sub']
         
         if not user_id:
             raise credentials_exception
@@ -43,11 +38,12 @@ def verify_access_token(token: str, credentials_exception):
     
     except jwt.ExpiredSignatureError:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token Expired"
         )
     
-    except jwt.InvalidSignatureError:
+    except jwt.InvalidTokenError as e:
+        print(f"DEBUG TOKEN ERROR: {type(e).__name__} - {e}")
         raise credentials_exception
 
 async def get_current_user(token: str= Depends(oauth2schema), db: AsyncSession= Depends(get_db)):
@@ -56,7 +52,9 @@ async def get_current_user(token: str= Depends(oauth2schema), db: AsyncSession= 
         detail="Token Invalid"
     )
     
-    user_id = verify_access_token(token, credentials_exception)
+    user_id_str = verify_access_token(token, credentials_exception)
+    
+    user_id = UUID(user_id_str)
     
     command = await db.execute(select(models.Users).where(models.Users.id == user_id))
     
