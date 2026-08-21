@@ -19,7 +19,7 @@ load_dotenv(dotenv_path=dotenv_path)
 SECRET_KEY = settings.secret_key
 ALGORITHM = ALGORITHM
 
-def create_access_token(user_id: int):
+def create_access_token(user_id: str):
     payload = {
         'sub' : str(user_id),
         'iat' : datetime.now(timezone.utc),
@@ -39,7 +39,7 @@ def verify_access_token(token: str, credentials_exception):
         if not user_id:
             raise credentials_exception
         
-        return int(user_id)
+        return user_id
     
     except jwt.ExpiredSignatureError:
         raise HTTPException(

@@ -1,15 +1,19 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, status, Depends
 from pathlib import Path
-from .ingestion import load_pdf, Ingestion
+from ..ingestion import load_pdf, Ingestion
 from qdrant_client.models import PointStruct
 from uuid import uuid4
-from .dependency import get_qdrant
+from ..dependency import get_qdrant
 from qdrant_client import QdrantClient
-from .global_variables import COLLECTION_NAME, GEMINI_MODEL
-from .schemas import Question
+from ..global_variables import COLLECTION_NAME, GEMINI_MODEL
+from ..schemas import Question
 from google import genai
-from typing import List
-from .config import settings
+from ..database import get_db
+from ..config import settings
+from ..oauth2 import get_current_user
+from ..import models
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 router = APIRouter(
     tags= ['RAG']
@@ -18,7 +22,12 @@ router = APIRouter(
 ingest = Ingestion()
 
 @router.post('/upload')
-async def upload_pdf(file: UploadFile= File(...), qdrant: QdrantClient= Depends(get_qdrant)):
+async def upload_pdf(
+    file: UploadFile= File(...),
+    qdrant: QdrantClient= Depends(get_qdrant),
+    user_info: models.Users = Depends(get_current_user),
+    ):
+    
     if not file.filename.lower().endswith('.pdf'):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -57,12 +66,15 @@ async def upload_pdf(file: UploadFile= File(...), qdrant: QdrantClient= Depends(
     )
 
 @router.post('/ask')
-async def ask(question: Question, qdrant: QdrantClient= Depends(get_qdrant)):
+async def ask(
+    question: Question,
+    qdrant: QdrantClient= Depends(get_qdrant),
+    user_info: models.Users = Depends(get_current_user)
+    ):
+    
     ai_client = genai.Client(
         api_key= settings.gemini_api_key
     )
-    
-    
     questinon_embedding = ingest.embed(question.question)
     
     results = qdrant.query_points(

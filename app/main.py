@@ -5,7 +5,8 @@ from qdrant_client.models import Distance, VectorParams
 from .global_variables import COLLECTION_NAME
 from .database import engine
 from .models import Base
-from .query import router as query_router
+from .routers.query import router as query_router
+from .routers.account import router as account_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,3 +45,4 @@ def main_page():
     }
 
 app.include_router(query_router)
+app.include_router(account_router)
