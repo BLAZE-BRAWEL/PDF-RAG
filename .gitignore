@@ -14,3 +14,4 @@ wheels/
 *.env
 
 users_pdf/
+users_pdf/*

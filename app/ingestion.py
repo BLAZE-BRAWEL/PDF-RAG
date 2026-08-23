@@ -10,27 +10,24 @@ def load_pdf(path):
 
     pages = []
 
-    for page_number, page in enumerate(doc):
+    for page in doc:
         text = page.get_text("text", sort=True)
 
-        print(
-            f"PAGE {page_number + 1}: "
-            f"{len(text)} characters"
-        )
 
-        pages.append(
-            Document(
-                page_content=text,
-                metadata={
-                    "page": page_number + 1,
-                    "source": str(path),
-                },
-            )
-        )
+        pages.append(text)
     
     doc.close()
 
-    return pages
+    pdf_text = " ".join(page for page in pages)
+    
+    document = Document(
+        page_content = pdf_text,
+        metadata = {
+            "source" : str(path)
+        }
+    )
+    
+    return document
 
 class Ingestion():
     
@@ -40,15 +37,13 @@ class Ingestion():
 
         return embeddings
     
-    def chunk_documents_with_embedding(self, documents, chunk_size, chunk_overlap):
+    def chunk_documents_with_embedding(self, document, chunk_size, chunk_overlap):
         
         splitter = RecursiveCharacterTextSplitter(chunk_size= chunk_size, chunk_overlap = chunk_overlap)
         
         
-        chunks = splitter.split_documents(documents)
+        chunks = splitter.split_documents([document])
         
-        print("NUMBER OF DOCUMENTS:", len(documents))
-        print("NUMBER OF CHUNKS:", len(chunks))
         
         texts = [
             chunk.page_content
@@ -57,7 +52,6 @@ class Ingestion():
         
         embeddings = self.embed(texts)
         
-        print("NUMBER OF EMBEDDINGS:", len(embeddings))
         
         return embeddings, texts
         
