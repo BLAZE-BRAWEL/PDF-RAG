@@ -43,7 +43,6 @@ def verify_access_token(token: str, credentials_exception):
         )
     
     except jwt.InvalidTokenError as e:
-        print(f"DEBUG TOKEN ERROR: {type(e).__name__} - {e}")
         raise credentials_exception
 
 async def get_current_user(token: str= Depends(oauth2schema), db: AsyncSession= Depends(get_db)):
