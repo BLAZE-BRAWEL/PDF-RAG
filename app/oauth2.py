@@ -60,9 +60,6 @@ async def get_current_user(token: str= Depends(oauth2schema), db: AsyncSession= 
     user = command.scalars().first()
     
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="I don't know what to write"
-        )
+        raise credentials_exception
     
     return user
