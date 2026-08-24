@@ -1,8 +1,5 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
-from pathlib import Path
-from dotenv import load_dotenv
-import os
 from fastapi import HTTPException, status
 from .config import settings
 
