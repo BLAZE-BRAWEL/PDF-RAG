@@ -45,7 +45,7 @@ async def upload_pdf(
     
     documents = load_pdf(file_path)
     
-    embeddings, chunks = ingest.chunk_documents_with_embedding(documents, chunk_size=1000, chunk_overlap=100)
+    embeddings, chunks = ingest.chunk_documents_with_embedding(documents)
     
     points = []
     

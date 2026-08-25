@@ -21,7 +21,7 @@ class Ingestion():
 
         return embeddings
     
-    def chunk_documents_with_embedding(self, document, chunk_size, chunk_overlap):
+    def chunk_documents_with_embedding(self, document):
         
         
         splitter_headers = [
