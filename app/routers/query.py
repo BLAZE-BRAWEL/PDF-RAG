@@ -1,7 +1,7 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, status, Depends
 from pathlib import Path
 from ..ingestion import load_pdf, Ingestion
-from qdrant_client.models import PointStruct
+from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue
 from uuid import uuid4
 from ..dependency import get_qdrant
 from qdrant_client import QdrantClient
@@ -56,6 +56,7 @@ async def upload_pdf(
                 vector = embedding,
                 payload={
                     "text" : chunk,
+                    "owner" : str(user_info.id)
                 }
             )
         )
@@ -80,7 +81,15 @@ async def ask(
     results = qdrant.query_points(
         collection_name= COLLECTION_NAME,
         query= questinon_embedding,
-        with_payload=True
+        with_payload=True,
+        query_filter= Filter(
+            must= [
+                FieldCondition(
+                    key="owner",
+                    match= MatchValue(value = str(user_info.id))
+                )
+            ]
+        )
     )
     
     retrieved_data = [
