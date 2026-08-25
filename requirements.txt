@@ -120,3 +120,9 @@ watchfiles==1.2.0
 websockets==16.1.1
 xxhash==4.0.1
 zstandard==0.25.0
+flatbuffers==25.12.19
+onnxruntime==1.29.0
+psutil==7.2.2
+pymupdf-layout==1.28.2
+pymupdf4llm==1.28.2
+tabulate==0.10.0
