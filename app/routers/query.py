@@ -88,7 +88,7 @@ async def ask(
         for result in results.points
     ]
     
-    interaction = ai_client.interactions.create(
+    interaction = await ai_client.aio.interactions.create(
         model= GEMINI_MODEL,
         input= question.question,
         system_instruction= f"""
