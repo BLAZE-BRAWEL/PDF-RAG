@@ -97,6 +97,12 @@ async def ask(
         for result in results.points
     ]
     
+    if not retrieved_data:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail= "PDF File not detected."
+        )
+    
     interaction = await ai_client.aio.interactions.create(
         model= GEMINI_MODEL,
         input= question.question,
