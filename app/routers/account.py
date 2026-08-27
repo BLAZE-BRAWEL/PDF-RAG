@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 router = APIRouter(tags=["User Related EndPoints"])
 
-@router.post('/signup')
+@router.post('/signup', status_code=status.HTTP_201_CREATED)
 async def sign_up(details: Account_Details_In, db: AsyncSession= Depends(get_db)):
     
     user = models.Users(**details.model_dump())
