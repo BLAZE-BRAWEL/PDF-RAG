@@ -8,12 +8,9 @@ from qdrant_client import QdrantClient
 from ..global_variables import COLLECTION_NAME, GEMINI_MODEL
 from ..schemas import Question
 from google import genai
-from ..database import get_db
 from ..config import settings
 from ..oauth2 import get_current_user
 from ..import models
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 router = APIRouter(
     tags= ['RAG']

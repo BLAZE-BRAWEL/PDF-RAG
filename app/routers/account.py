@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from ..oauth2 import create_access_token
-from ..schemas import Account_Details_In, Account_Details_Out
+from ..schemas import Account_Details_In
 from ..utility import hash_password, verify_password
 from ..import models
 from ..database import get_db

@@ -1,7 +1,6 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
+from langchain_text_splitters import MarkdownHeaderTextSplitter
 from sentence_transformers import SentenceTransformer
 import pymupdf4llm
-from langchain_core.documents import Document
 
 model = SentenceTransformer("BAAI/bge-base-en-v1.5")
 
