@@ -5,7 +5,8 @@ from .dependency import get_qdrant
 from qdrant_client import QdrantClient
 from qdrant_client.models import MatchValue, FieldCondition, Filter
 from fastapi import Depends
-
+from .oauth2 import get_current_user
+from .models import Users
 
 hashing_algorithm = PasswordHash.recommended()
 
@@ -27,7 +28,12 @@ def finger_print_for_pdf(file: bytes) -> str:
     
     return hashlib.sha256(file).hexdigest()
 
-def verify_pdf_finger_print(collection_name: str,file: bytes ,qdrant: QdrantClient= Depends(get_qdrant)):
+def verify_pdf_finger_print(
+    collection_name: str,
+    file: bytes,
+    qdrant: QdrantClient= Depends(get_qdrant),
+    user: Users = Depends(get_current_user)
+):
     
     finger_print = finger_print_for_pdf(file)
     
@@ -38,8 +44,14 @@ def verify_pdf_finger_print(collection_name: str,file: bytes ,qdrant: QdrantClie
                 FieldCondition(
                     key = "fignerprint",
                     match = MatchValue(value = finger_print)
+                ),
+                
+                FieldCondition(
+                    key = "owner",
+                    match = MatchValue(value = str(user.id))
                 )
             ]
+            
         ),
         
         limit = 1,

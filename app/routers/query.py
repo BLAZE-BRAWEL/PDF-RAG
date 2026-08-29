@@ -72,7 +72,7 @@ async def upload_pdf(
     
 
     qdrant.upsert(
-        collection_name= COLLECTION_NAME,
+        collection_name = COLLECTION_NAME,
         points= points
     )
 
