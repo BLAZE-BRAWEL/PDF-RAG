@@ -11,6 +11,7 @@ from google import genai
 from ..config import settings
 from ..oauth2 import get_current_user
 from ..import models
+from ..utility import finger_print_for_pdf, verify_pdf_finger_print
 
 router = APIRouter(
     tags= ['RAG']
@@ -44,6 +45,16 @@ async def upload_pdf(
     
     embeddings, chunks = ingest.chunk_documents_with_embedding(documents)
     
+    
+    point = verify_pdf_finger_print(COLLECTION_NAME, contents)
+    
+    if point:
+        raise HTTPException(
+            status_code = status.HTTP_409_CONFLICT,
+            detail = "You already uploaded this PDF"
+        )
+    
+    
     points = []
     
     for embedding, chunk in zip(embeddings, chunks):
@@ -53,11 +64,13 @@ async def upload_pdf(
                 vector = embedding,
                 payload={
                     "text" : chunk,
-                    "owner" : str(user_info.id)
+                    "owner" : str(user_info.id),
+                    "fignerprint" : finger_print_for_pdf(contents)
                 }
             )
         )
     
+
     qdrant.upsert(
         collection_name= COLLECTION_NAME,
         points= points
