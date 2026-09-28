@@ -1,17 +1,16 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, status, Depends
-from pathlib import Path
-from ..ingestion import load_pdf, Ingestion
-from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue
+from ..ingestion import Ingestion
+from qdrant_client.models import Filter, FieldCondition, MatchValue
 from uuid import uuid4
 from ..dependency import get_qdrant
 from qdrant_client import QdrantClient
-from ..global_variables import COLLECTION_NAME, GEMINI_MODEL
+from ..global_variables import COLLECTION_NAME, GEMINI_MODEL, UPLOAD_DIRECTORY
 from ..schemas import Question
 from google import genai
 from ..config import settings
 from ..oauth2 import get_current_user
 from ..import models
-from ..utility import finger_print_for_pdf, verify_pdf_finger_print
+from ..workers.worker import pdf_work
 
 router = APIRouter(
     tags= ['RAG']
@@ -19,10 +18,9 @@ router = APIRouter(
 
 ingest = Ingestion()
 
-@router.post('/upload')
+@router.post('/upload', status_code = status.HTTP_202_ACCEPTED)
 async def upload_pdf(
     file: UploadFile= File(...),
-    qdrant: QdrantClient= Depends(get_qdrant),
     user_info: models.Users = Depends(get_current_user),
     ):
     
@@ -34,47 +32,25 @@ async def upload_pdf(
     
     contents = await file.read()
     
-    upload_directory = Path("users_pdf")
-    upload_directory.mkdir(exist_ok=True)
+    UPLOAD_DIRECTORY.mkdir(exist_ok=True)
     
-    file_path = upload_directory / file.filename
+    file_id = str(uuid4())
+    
+    file_name = f"{file_id}_{file.filename}"
+    
+    file_path = UPLOAD_DIRECTORY / file_name
     
     file_path.write_bytes(contents)
     
-    documents = load_pdf(file_path)
-    
-    embeddings, chunks = ingest.chunk_documents_with_embedding(documents)
-    
-    
-    point = verify_pdf_finger_print(COLLECTION_NAME, contents)
-    
-    if point:
-        raise HTTPException(
-            status_code = status.HTTP_409_CONFLICT,
-            detail = "You already uploaded this PDF"
-        )
-    
-    
-    points = []
-    
-    for embedding, chunk in zip(embeddings, chunks):
-        points.append(
-            PointStruct(
-                id = uuid4(),
-                vector = embedding,
-                payload={
-                    "text" : chunk,
-                    "owner" : str(user_info.id),
-                    "fignerprint" : finger_print_for_pdf(contents)
-                }
-            )
-        )
-    
-
-    qdrant.upsert(
-        collection_name = COLLECTION_NAME,
-        points= points
+    task = pdf_work(
+        file_path = file_path,
+        user_id = user_info.id,
     )
+    
+    return {
+        "status" : "Processing",
+        "task_id" : task.id
+    }
 
 @router.post('/ask')
 async def ask(

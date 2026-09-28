@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     secret_key: str
     qdrant_url: str
     gemini_api_key: str
+    celery_broker: str
+    celery_backend: str
     
     model_config = SettingsConfigDict(
         env_file=dotenv_path
