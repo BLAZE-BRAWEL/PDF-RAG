@@ -10,7 +10,9 @@ from google import genai
 from ..config import settings
 from ..oauth2 import get_current_user
 from ..import models
-from ..workers.worker import pdf_work
+from ..workers.worker import pdf_work, celery_app
+from pathlib import Path
+from celery.result import AsyncResult
 
 router = APIRouter(
     tags= ['RAG']
@@ -30,19 +32,25 @@ async def upload_pdf(
             detail="Only PDF Supported"
         )
     
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail = "Only PDF supported"
+        )
+    
     contents = await file.read()
     
     UPLOAD_DIRECTORY.mkdir(exist_ok=True)
     
     file_id = str(uuid4())
     
-    file_name = f"{file_id}_{file.filename}"
+    file_name = f"{file_id}_{Path(file.filename).name}"
     
     file_path = UPLOAD_DIRECTORY / file_name
     
     file_path.write_bytes(contents)
     
-    task = pdf_work(
+    task = pdf_work.delay(
         file_path = file_path,
         user_id = user_info.id,
     )

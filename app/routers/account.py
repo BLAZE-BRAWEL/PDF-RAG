@@ -16,6 +16,16 @@ async def sign_up(details: Account_Details_In, db: AsyncSession= Depends(get_db)
     
     user.password = hash_password(user.password)
     
+    command = await db.execute(select(models.Users).where(models.Users.email == details.email))
+    
+    user_check = command.scalars().first()
+    
+    if user_check:
+        raise HTTPException(
+            status_code = status.HTTP_409_CONFLICT,
+            detail = "User with this email already exists"
+        )
+    
     db.add(user)
     await db.commit()
     await db.refresh(user)

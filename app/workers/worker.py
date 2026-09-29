@@ -3,7 +3,7 @@ from ..ingestion import Ingestion, load_pdf
 from ..utility import verify_pdf_finger_print, finger_print_for_pdf
 from ..dependency import get_qdrant
 import pymupdf4llm
-from global_variables import COLLECTION_NAME
+from ..global_variables import COLLECTION_NAME
 from fastapi import HTTPException, status, Depends 
 import qdrant_client
 from qdrant_client.models import PointStruct
