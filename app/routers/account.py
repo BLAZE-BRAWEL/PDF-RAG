@@ -6,15 +6,12 @@ from ..import models
 from ..database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 router = APIRouter(tags=["User Related EndPoints"])
 
 @router.post('/signup', status_code=status.HTTP_201_CREATED)
 async def sign_up(details: Account_Details_In, db: AsyncSession= Depends(get_db)):
-    
-    user = models.Users(**details.model_dump())
-    
-    user.password = hash_password(user.password)
     
     command = await db.execute(select(models.Users).where(models.Users.email == details.email))
     
@@ -25,10 +22,34 @@ async def sign_up(details: Account_Details_In, db: AsyncSession= Depends(get_db)
             status_code = status.HTTP_409_CONFLICT,
             detail = "User with this email already exists"
         )
+
+    user_info = details.model_dump()
     
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    user_info["password"] = hash_password(user_info["password"])
+    
+    user = models.Users(**user_info)
+    
+    try:
+        db.add(user)
+        
+        await db.commit()
+        await db.refresh(user)
+    
+    except IntegrityError:
+        await db.rollback()
+        
+        raise HTTPException(
+            status_code = status.HTTP_409_CONFLICT,
+            detail = "User with email already exists "
+        )
+    
+    except Exception:
+        await db.rollback()
+        
+        raise HTTPException(
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = "Unexpedted Error occured"
+        )
 
 @router.post('/login')
 async def log_in(details: Account_Details_In, db: AsyncSession= Depends(get_db)):
