@@ -5,11 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "aiofiles>=25.1.0",
     "asyncpg>=0.31.0",
     "celery>=5.6.3",
     "fastapi[standard]>=0.141.1",
     "google-genai>=2.19.0",
     "langchain-text-splitters>=1.1.2",
+    "psycopg2-binary>=2.9.13",
     "pwdlib[argon2]>=0.3.1",
     "pyjwt>=2.13.0",
     "pymupdf>=1.28.2",

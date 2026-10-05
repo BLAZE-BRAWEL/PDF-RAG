@@ -1,17 +1,16 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams
 from .global_variables import COLLECTION_NAME
 from .database import engine
 from .models import Base
 from .routers.query import router as query_router
 from .routers.account import router as account_router
+from .qdrant_setup import qdrant
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
-    qdrant = QdrantClient("http://localhost:6333")
     app.state.qdrant = qdrant
 
     try:
