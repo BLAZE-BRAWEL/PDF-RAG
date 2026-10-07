@@ -19,10 +19,12 @@ from sqlalchemy.exc import IntegrityError
 import aiofiles
 import os
 from sqlalchemy import select
+from ..logger.logging import logger
 
 router = APIRouter(
     tags= ['RAG']
 )
+
 
 ingest = Ingestion()
 
@@ -192,17 +194,27 @@ async def ask(
             detail= "PDF File not detected."
         )
     
-    interaction = await ai_client.aio.interactions.create(
-        model= GEMINI_MODEL,
-        input= question.question,
-        system_instruction= f"""
-        You are an Helpful AI Assistain you answer questions from context data and if the answer is not inside context 
-        You say cannot retrieve the data. Here is your context
+    try: 
         
-        {retrieved_data}
+        interaction = await ai_client.aio.interactions.create(
+            model= GEMINI_MODEL,
+            input= question.question,
+            system_instruction= f"""
+            You are an Helpful AI Assistain you answer questions from context data and if the answer is not inside context 
+            You say cannot retrieve the data. Here is your context
         
-        """
-    )
+            {retrieved_data}
+        
+            """
+        )
+    
+    except Exception:
+        
+        logger.exception(
+            "Failed to connect to Model"
+        )
+        
+        raise
     
     return {
         'answer' : interaction.output_text
