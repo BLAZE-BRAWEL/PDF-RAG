@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     celery_broker_url: str
     celery_backend_url: str
     qdrant_url: str
+    rate_limit_storage_url: str
     
     model_config = SettingsConfigDict(
         env_file=dotenv_path,

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, UploadFile, HTTPException, status, Depends
+from fastapi import APIRouter, File, UploadFile, HTTPException, status, Depends, Request
 from ..ingestion import Ingestion
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from uuid import uuid4
@@ -20,6 +20,8 @@ import aiofiles
 import os
 from sqlalchemy import select
 from ..logger.logging import logger
+from ..limiter import limiter
+
 
 router = APIRouter(
     tags= ['RAG']
@@ -29,7 +31,9 @@ router = APIRouter(
 ingest = Ingestion()
 
 @router.post('/upload', status_code = status.HTTP_202_ACCEPTED)
+@limiter.limit('5/minute')
 async def upload_pdf(
+    request: Request,
     file: UploadFile= File(...),
     user_info: models.Users = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -129,7 +133,9 @@ async def upload_pdf(
     }
 
 @router.get('/tasks/{task_id}')
+@limiter.limit('50/minute')
 async def get_task_status(
+    request: Request,
     task_id: str,
     db: AsyncSession = Depends(get_db),
     user_info: models.Users = Depends(get_current_user)
@@ -158,7 +164,9 @@ async def get_task_status(
     return task
 
 @router.post('/ask')
+@limiter.limit('10/minute')
 async def ask(
+    request: Request,
     question: Question,
     qdrant: QdrantClient= Depends(get_qdrant),
     user_info: models.Users = Depends(get_current_user)

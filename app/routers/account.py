@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from ..oauth2 import create_access_token
 from ..schemas import Account_Details_In
 from ..utility import hash_password, verify_password
@@ -7,11 +7,13 @@ from ..database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from ..limiter import limiter
 
 router = APIRouter(tags=["User Related EndPoints"])
 
 @router.post('/signup', status_code=status.HTTP_201_CREATED)
-async def sign_up(details: Account_Details_In, db: AsyncSession= Depends(get_db)):
+@limiter.limit('5/minute')
+async def sign_up(request: Request, details: Account_Details_In, db: AsyncSession= Depends(get_db)):
     
     command = await db.execute(select(models.Users).where(models.Users.email == details.email))
     
@@ -52,7 +54,8 @@ async def sign_up(details: Account_Details_In, db: AsyncSession= Depends(get_db)
         )
 
 @router.post('/login')
-async def log_in(details: Account_Details_In, db: AsyncSession= Depends(get_db)):
+@limiter.limit('5/minute')
+async def log_in(request: Request ,details: Account_Details_In, db: AsyncSession= Depends(get_db)):
     
     command = await db.execute(select(models.Users).where(models.Users.email == details.email))
     

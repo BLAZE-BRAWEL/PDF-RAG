@@ -20,3 +20,7 @@ class Account_Details_In(BaseModel):
     model_config = ConfigDict(
         from_attributes= True
     )
+
+class TaskOut(BaseModel):
+    task_name: str
+    task_status: str
