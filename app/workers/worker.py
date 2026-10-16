@@ -9,6 +9,7 @@ from ..qdrant_setup import qdrant
 from ..import models
 from pathlib import Path
 from .worker_db import SessionLocal
+from qdrant_client.http import models as qdrant_models
 
 ingestion = Ingestion()
 
@@ -59,15 +60,23 @@ def pdf_work(
                 "reason" : "PDF Already exists"
             }
         
-        embeddings , chunks = ingestion.chunk_documents_with_embedding(document)
+        dense_embeddings, sparse_embeddings , chunks = ingestion.chunk_documents_with_embedding(document)
         
         points = []
         
-        for embedding , chunk in zip(embeddings, chunks):
+        for dense_embedding, sparse_embedding , chunk in zip(dense_embeddings, sparse_embeddings, chunks):
             points.append(
                 PointStruct(
                     id = uuid4(),
-                    vector = embedding,
+                    vector = {
+                        "dense" : dense_embedding,
+                        
+                        "sparse" : qdrant_models.SparseVector(
+                            indices = sparse_embedding.indices.tolist(),
+                            
+                            values = sparse_embedding.values.tolist()
+                        )
+                    },
                     payload = {
                         "text" : chunk,
                         "owner" : user_id,

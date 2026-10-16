@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, status, Depends, Request
 from ..ingestion import Ingestion
-from qdrant_client.models import Filter, FieldCondition, MatchValue
+from qdrant_client import models as qdrant_models
 from uuid import uuid4
 from ..dependency import get_qdrant
 from qdrant_client import QdrantClient
@@ -12,7 +12,6 @@ from ..oauth2 import get_current_user
 from ..import models
 from ..workers.worker import pdf_work_worker
 from pathlib import Path
-from ..import models
 from ..database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -175,20 +174,36 @@ async def ask(
     ai_client = genai.Client(
         api_key = settings.gemini_api_key
     )
-    questinon_embedding = ingest.embed(question.question)
+    dense_question_embedding, sparse_question_embedding = ingest.embed(question.question)
     
     results = qdrant.query_points(
         collection_name = COLLECTION_NAME,
-        query = questinon_embedding,
+        
+        prefetch = [
+            
+            qdrant_models.Prefetch(
+                query = dense_question_embedding,
+                using = "dense",
+                limit = 20
+            ),
+            
+            qdrant_models.Prefetch(
+                query = qdrant_models.SparseVector(
+                    indices = sparse_question_embedding[0].indices.tolist(),
+                    values = sparse_question_embedding[0].values.tolist()
+                ),
+
+                
+                using = "sparse",
+                limit = 20
+            )
+            
+        ],
+        
+        query = qdrant_models.FusionQuery(
+            fusion = qdrant_models.Fusion.RRF),
         with_payload =True,
-        query_filter = Filter(
-            must = [
-                FieldCondition(
-                    key="owner",
-                    match= MatchValue(value = str(user_info.id))
-                )
-            ]
-        )
+        limit = 5
     )
     
     retrieved_data = [

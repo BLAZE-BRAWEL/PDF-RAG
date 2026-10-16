@@ -2,9 +2,13 @@ from langchain_text_splitters import MarkdownHeaderTextSplitter
 from sentence_transformers import SentenceTransformer
 import pymupdf4llm
 from .logger.logging import logger
+from fastembed import SparseTextEmbedding
 
+dense_model = SentenceTransformer("BAAI/bge-base-en-v1.5")
 
-model = SentenceTransformer("BAAI/bge-base-en-v1.5")
+sparse_model = SparseTextEmbedding(
+    model_name="prithivida/Splade_PP_en_v1"
+)
 
 def load_pdf(path):
     try:
@@ -26,12 +30,13 @@ class Ingestion():
     def embed(self, document):
         
         try:
-            embeddings = model.encode(document)
+            dense_embeddings = dense_model.encode(document)
+            sparse_embeddings = list(sparse_model.embed(document))
         
         except Exception:
             logger.exception("Failed to embed documents.")
 
-        return embeddings
+        return dense_embeddings, sparse_embeddings
     
     def chunk_documents_with_embedding(self, document):
         
@@ -56,11 +61,11 @@ class Ingestion():
                 for chunk in chunks
             ]
         
-            embeddings = self.embed(texts)
+            dense_embedding, sparse_embedding = self.embed(texts)
         
         except Exception:
             logger.exception("Failed to chunk documents.")
             raise
         
-        return embeddings, texts
+        return dense_embedding, sparse_embedding, texts
         

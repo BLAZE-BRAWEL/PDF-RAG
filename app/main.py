@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from qdrant_client.models import Distance, VectorParams
+from qdrant_client.models import Distance, VectorParams, SparseVectorParams
 from .global_variables import COLLECTION_NAME
 from .database import engine
 from .models import Base
@@ -19,11 +19,17 @@ async def lifespan(app: FastAPI):
 
         if COLLECTION_NAME not in collection_names:
             qdrant.create_collection(
-                collection_name=COLLECTION_NAME,
-                vectors_config=VectorParams(
-                    size=768,
-                    distance=Distance.COSINE,
-                ),
+                collection_name = COLLECTION_NAME,
+                vectors_config = {
+                    "dense" : VectorParams(
+                        size = 768,
+                        distance = Distance.COSINE
+                    )
+                },
+                
+                sparse_vectors_config = {
+                    "sparse" : SparseVectorParams()
+                }
             )
 
         async with engine.begin() as conn:
