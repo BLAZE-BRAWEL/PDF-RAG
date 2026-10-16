@@ -8,10 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from ..limiter import limiter
+from ..import schemas
+from ..logger.logging import logger
 
 router = APIRouter(tags=["User Related EndPoints"])
 
-@router.post('/signup', status_code=status.HTTP_201_CREATED)
+@router.post('/signup', status_code=status.HTTP_201_CREATED, response_model = schemas.Account_Details_Out)
 @limiter.limit('5/minute')
 async def sign_up(request: Request, details: Account_Details_In, db: AsyncSession= Depends(get_db)):
     
@@ -37,6 +39,8 @@ async def sign_up(request: Request, details: Account_Details_In, db: AsyncSessio
         await db.commit()
         await db.refresh(user)
     
+        return user
+    
     except IntegrityError:
         await db.rollback()
         
@@ -48,9 +52,13 @@ async def sign_up(request: Request, details: Account_Details_In, db: AsyncSessio
     except Exception:
         await db.rollback()
         
+        logger.exception(
+            "Database Error occured"
+        )
+        
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = "Unexpedted Error occured"
+            detail = "Unexpected Error occured"
         )
 
 @router.post('/login')

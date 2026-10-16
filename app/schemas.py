@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, SecretStr
+from pydantic import BaseModel, ConfigDict, SecretStr, EmailStr
 from uuid import UUID
 
 class Question(BaseModel):
@@ -14,7 +14,7 @@ class Account_Details_Out(BaseModel):
     )
 
 class Account_Details_In(BaseModel):
-    email: str
+    email: EmailStr
     password: SecretStr
     
     model_config = ConfigDict(

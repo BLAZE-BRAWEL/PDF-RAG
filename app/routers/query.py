@@ -21,7 +21,7 @@ import os
 from sqlalchemy import select
 from ..logger.logging import logger
 from ..limiter import limiter
-
+from ..import schemas
 
 router = APIRouter(
     tags= ['RAG']
@@ -132,7 +132,7 @@ async def upload_pdf(
         "task_id" : celery_unique_id
     }
 
-@router.get('/tasks/{task_id}')
+@router.get('/tasks/{task_id}', response_model = schemas.TaskOut)
 @limiter.limit('50/minute')
 async def get_task_status(
     request: Request,
