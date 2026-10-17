@@ -64,6 +64,8 @@ def pdf_work(
         
         points = []
         
+        finger_print = finger_print_for_pdf(document)
+        
         for dense_embedding, sparse_embedding , chunk in zip(dense_embeddings, sparse_embeddings, chunks):
             points.append(
                 PointStruct(
@@ -80,7 +82,7 @@ def pdf_work(
                     payload = {
                         "text" : chunk,
                         "owner" : user_id,
-                        "fingerprint" :  finger_print_for_pdf(document)
+                        "fingerprint" :  finger_print
                     }
                 )
             )
