@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from qdrant_client.models import Distance, VectorParams, SparseVectorParams
-from .global_variables import COLLECTION_NAME
+from .global_variables import COLLECTION_NAME, UPLOAD_DIRECTORY
 from .database import engine
 from .models import Base
 from .routers.query import router as query_router
@@ -35,6 +35,8 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
+        UPLOAD_DIRECTORY.mkdir(exist_ok=True)
+        
         yield
 
     finally:

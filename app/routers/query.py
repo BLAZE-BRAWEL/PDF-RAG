@@ -58,8 +58,6 @@ async def upload_pdf(
             detail = "Only PDF Supported"
         )
     
-    UPLOAD_DIRECTORY.mkdir(exist_ok=True)
-    
     file_id = str(uuid4())
     
     file_name = f"{file_id}_{Path(file.filename).name}"
