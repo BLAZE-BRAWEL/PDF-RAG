@@ -5,7 +5,7 @@ from ..global_variables import COLLECTION_NAME
 from qdrant_client.models import PointStruct
 from uuid import uuid4
 from ..database import SessionLocal
-from ..qdrant_setup import qdrant
+from .worker_db import qdrant
 from ..import models
 from pathlib import Path
 from .worker_db import SessionLocal

@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.14"
 
 [[package]]
@@ -2027,7 +2027,7 @@ requires-dist = [
     { name = "pyjwt", specifier = ">=2.13.0" },
     { name = "pymupdf", specifier = ">=1.28.2" },
     { name = "pymupdf4llm", specifier = ">=1.28.2" },
-    { name = "qdrant-client", specifier = ">=1.19.0" },
+    { name = "qdrant-client", extras = ["async"], specifier = ">=1.19.0" },
     { name = "redis", specifier = ">=8.1.0" },
     { name = "sentence-transformers", specifier = ">=6.0.0" },
     { name = "slowapi", specifier = ">=0.1.10" },

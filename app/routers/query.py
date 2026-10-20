@@ -174,7 +174,7 @@ async def ask(
     )
     dense_question_embedding, sparse_question_embedding = ingest.embed(question.question)
     
-    results = qdrant.query_points(
+    results = await qdrant.query_points(
         collection_name = COLLECTION_NAME,
         
         prefetch = [

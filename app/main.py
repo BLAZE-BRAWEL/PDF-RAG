@@ -14,11 +14,11 @@ async def lifespan(app: FastAPI):
     app.state.qdrant = qdrant
 
     try:
-        collections = qdrant.get_collections().collections
+        collections = (await qdrant.get_collections()).collections
         collection_names = [collection.name for collection in collections]
 
         if COLLECTION_NAME not in collection_names:
-            qdrant.create_collection(
+            await qdrant.create_collection(
                 collection_name = COLLECTION_NAME,
                 vectors_config = {
                     "dense" : VectorParams(
@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
 
     finally:
         await engine.dispose()
-        qdrant.close()
+        await qdrant.close()
 
 app = FastAPI(lifespan=lifespan)
 

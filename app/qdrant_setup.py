@@ -1,4 +1,4 @@
-from qdrant_client import QdrantClient
+from qdrant_client import AsyncQdrantClient
 from .config import settings
 
-qdrant  = QdrantClient(url = settings.qdrant_url)
+qdrant  = AsyncQdrantClient(url = settings.qdrant_url)

@@ -2,7 +2,7 @@ from pydantic import SecretStr
 from pwdlib import PasswordHash
 import hashlib
 from qdrant_client.models import MatchValue, FieldCondition, Filter
-from .qdrant_setup import qdrant
+from .workers.worker_db import qdrant
 
 
 hashing_algorithm = PasswordHash.recommended()
