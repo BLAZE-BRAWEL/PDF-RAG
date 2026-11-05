@@ -1,5 +1,5 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, status, Depends, Request
-from ..ingestion import Ingestion
+from ..ingestion import Ingestion, reranker
 from qdrant_client import models as qdrant_models
 from uuid import uuid4
 from ..dependency import get_qdrant
@@ -182,7 +182,7 @@ async def ask(
             qdrant_models.Prefetch(
                 query = dense_question_embedding,
                 using = "dense",
-                limit = 20
+                limit = 50
             ),
             
             qdrant_models.Prefetch(
@@ -193,7 +193,7 @@ async def ask(
 
                 
                 using = "sparse",
-                limit = 20
+                limit = 50
             )
             
         ],
@@ -201,15 +201,29 @@ async def ask(
         query = qdrant_models.FusionQuery(
             fusion = qdrant_models.Fusion.RRF),
         with_payload =True,
-        limit = 5
+        limit = 25
     )
     
-    retrieved_data = [
+
+    
+    if results.points:
+        
+        retrieved_data = [
         result.payload.get('text', '')
         for result in results.points
-    ]
+        ]
+        
+        scores = list(reranker.rerank(question.question, retrieved_data))
+        
+        reranked_results = sorted(
+            zip(retrieved_data, scores),
+            key = lambda x: x[1],
+            reverse = True
+        )
+        
+        final_data = reranked_results[:5]
     
-    if not retrieved_data:
+    else:
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,
             detail= "PDF File not detected."
@@ -224,7 +238,7 @@ async def ask(
             You are an Helpful AI Assistain you answer questions from context data and if the answer is not inside context 
             You say cannot retrieve the data. Here is your context
         
-            {retrieved_data}
+            {final_data}
         
             """
         )

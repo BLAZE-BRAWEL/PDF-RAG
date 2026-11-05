@@ -3,11 +3,16 @@ from sentence_transformers import SentenceTransformer
 import pymupdf4llm
 from .logger.logging import logger
 from fastembed import SparseTextEmbedding
+from fastembed.rerank.cross_encoder import TextCrossEncoder
 
 dense_model = SentenceTransformer("BAAI/bge-base-en-v1.5")
 
 sparse_model = SparseTextEmbedding(
     model_name="prithivida/Splade_PP_en_v1"
+)
+
+reranker = TextCrossEncoder(
+    model_name = "BAAI/bge-reranker-base"
 )
 
 def load_pdf(path):
